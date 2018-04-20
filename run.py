@@ -1,4 +1,4 @@
-from func01 import read_train_file
+import func01
 
 import pandas as pd
 import numpy as np
@@ -14,5 +14,8 @@ from sklearn.preprocessing import MinMaxScaler
 
 file_train = "train.tsv"
 # rows: 669959,70, 3665
-train_raw_data = read_train_file(file_train)
-train_raw_data.shape
+rows= 10**5
+data = func01.read_and_clean_data(rows)
+data.shape
+
+
