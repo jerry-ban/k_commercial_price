@@ -41,9 +41,11 @@ def read_and_clean_data(data_count = None):
     train = train[train.price>0]
 
     #based on below to decide how to fill or clean data
+
     train.shape
     train.isnull().sum()  # here we know the brand_name and category_name has missing values, need to handle
 
+    nrow_train = train.shape[0]
     #transform price with log
     y_train = np.log1p(train.price)
 
@@ -86,12 +88,24 @@ def read_and_clean_data(data_count = None):
     merged['item_description'].str.encode("utf-8")
 
     #normalize expensive stuff, and units
-    df1 = routine.process_with_regex(merged)
-    df2 = brands_filling(df1)
+    merged = routine.process_with_regex(merged)
 
+    # fill in missing brand from name and description
+    merged = brands_filling(merged)
 
-    df=df2
-    return df
+    # concancenat name and brand
+    merged['name'] = merged['name'] + ' ' + merged['brand_name']
+    merged['item_description'] = merged['item_description'] \
+                                + ' ' + merged['name'] \
+                                + ' ' + merged['cat_1'] \
+                                + ' ' + merged['cat_2'] \
+                                + ' ' + merged['cat_0'] \
+                                + ' ' + merged['brand_name']
+    ###print(f'[{time() - start_time}] Item description concatenated.')
+
+    merged.drop(['price', 'test_id', 'train_id'], axis=1, inplace=True)
+
+    return merged, y_train, nrow_train
 
 
 def brands_filling(df):
