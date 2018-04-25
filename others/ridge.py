@@ -326,7 +326,7 @@ class ItemSelector(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, dataframe):
-        print(f'[{time()-self.start_time}] select {self.field}')
+        ###print(f'[{time()-self.start_time}] select {self.field}')
         dt = dataframe[self.field].dtype
         if is_categorical_dtype(dt):
             return dataframe[self.field].cat.codes[:, None]
@@ -405,7 +405,7 @@ def brands_filling(dataset):
                 return doc_word
         return ''
 
-    print(f"Before empty brand_name: {len(dataset[dataset['brand_name'] == ''].index)}")
+   ### print(f"Before empty brand_name: {len(dataset[dataset['brand_name'] == ''].index)}")
 
     n_name = dataset[dataset['brand_name'] == '']['name'].str.findall(
         pat=r"^[a-z0-9*/+\-'’?!.,|&%®™ôèéü]+\s[a-z0-9*/+\-'’?!.,|&%®™ôèéü]+")
@@ -421,7 +421,7 @@ def brands_filling(dataset):
     desc_lower = dataset[dataset['brand_name'] == '']['item_description'].str.findall(pat=brand_word)
     dataset.loc[dataset['brand_name'] == '', 'brand_name'] = [find_in_list_ss1(row) for row in desc_lower]
 
-    print(f"After empty brand_name: {len(dataset[dataset['brand_name'] == ''].index)}")
+   ### print(f"After empty brand_name: {len(dataset[dataset['brand_name'] == ''].index)}")
 
     del ss1, ss2
     gc.collect()
@@ -436,11 +436,11 @@ def preprocess_regex(dataset, start_time=time()):
 
     dataset['name'] = dataset['name'].str.replace(karats_regex, karats_repl)
     dataset['item_description'] = dataset['item_description'].str.replace(karats_regex, karats_repl)
-    print(f'[{time() - start_time}] Karats normalized.')
+    ###print(f'[{time() - start_time}] Karats normalized.')
 
     dataset['name'] = dataset['name'].str.replace(unit_regex, unit_repl)
     dataset['item_description'] = dataset['item_description'].str.replace(unit_regex, unit_repl)
-    print(f'[{time() - start_time}] Units glued.')
+    ###print(f'[{time() - start_time}] Units glued.')
 
 
 def preprocess_pandas(train, test, start_time=time()):
@@ -449,14 +449,14 @@ def preprocess_pandas(train, test, start_time=time()):
 
     nrow_train = train.shape[0]
     y_train = np.log1p(train["price"])
-    merge: pd.DataFrame = pd.concat([train, test])
-
+    #merge: pd.DataFrame = pd.concat([train, test])
+    merge = pd.concat([train, test])
     del train
     del test
     gc.collect()
 
     merge['has_category'] = (merge['category_name'].notnull()).astype('category')
-    print(f'[{time() - start_time}] Has_category filled.')
+    ###print(f'[{time() - start_time}] Has_category filled.')
 
     merge['category_name'] = merge['category_name'] \
         .fillna('other/other/other') \
@@ -464,15 +464,15 @@ def preprocess_pandas(train, test, start_time=time()):
         .astype(str)
     merge['general_cat'], merge['subcat_1'], merge['subcat_2'], merge['gen_subcat1'] = \
         zip(*merge['category_name'].apply(lambda x: split_cat(x)))
-    print(f'[{time() - start_time}] Split categories completed.')
+    ###print(f'[{time() - start_time}] Split categories completed.')
 
     merge['has_brand'] = (merge['brand_name'].notnull()).astype('category')
-    print(f'[{time() - start_time}] Has_brand filled.')
+    ###print(f'[{time() - start_time}] Has_brand filled.')
 
     merge['gencat_cond'] = merge['general_cat'].map(str) + '_' + merge['item_condition_id'].astype(str)
     merge['subcat_1_cond'] = merge['subcat_1'].map(str) + '_' + merge['item_condition_id'].astype(str)
     merge['subcat_2_cond'] = merge['subcat_2'].map(str) + '_' + merge['item_condition_id'].astype(str)
-    print(f'[{time() - start_time}] Categories and item_condition_id concancenated.')
+    ###print(f'[{time() - start_time}] Categories and item_condition_id concancenated.')
 
     merge['name'] = merge['name'] \
         .fillna('') \
@@ -486,15 +486,15 @@ def preprocess_pandas(train, test, start_time=time()):
         .fillna('') \
         .str.lower() \
         .replace(to_replace='No description yet', value='')
-    print(f'[{time() - start_time}] Missing filled.')
+    ###print(f'[{time() - start_time}] Missing filled.')
 
     preprocess_regex(merge, start_time)
 
     brands_filling(merge)
-    print(f'[{time() - start_time}] Brand name filled.')
+    ###print(f'[{time() - start_time}] Brand name filled.')
 
     merge['name'] = merge['name'] + ' ' + merge['brand_name']
-    print(f'[{time() - start_time}] Name concancenated.')
+    ###print(f'[{time() - start_time}] Name concancenated.')
 
     merge['item_description'] = merge['item_description'] \
                                 + ' ' + merge['name'] \
@@ -502,7 +502,7 @@ def preprocess_pandas(train, test, start_time=time()):
                                 + ' ' + merge['subcat_2'] \
                                 + ' ' + merge['general_cat'] \
                                 + ' ' + merge['brand_name']
-    print(f'[{time() - start_time}] Item description concatenated.')
+    ###print(f'[{time() - start_time}] Item description concatenated.')
 
     merge.drop(['price', 'test_id', 'train_id'], axis=1, inplace=True)
 
@@ -534,11 +534,12 @@ if __name__ == '__main__':
                          dtype={'item_condition_id': 'category',
                                 'shipping': 'category'}
                          )
-    print(f'[{time() - start_time}] Finished to load data')
+    ###print(f'[{time() - start_time}] Finished to load data')
     print('Train shape: ', train.shape)
     print('Test shape: ', test.shape)
 
-    submission: pd.DataFrame = test[['test_id']]
+    #submission: pd.DataFrame = test[['test_id']]
+    submission= test[['test_id']]
 
     merge, y_train, nrow_train = preprocess_pandas(train, test, start_time)
 
@@ -643,13 +644,13 @@ if __name__ == '__main__':
     ], n_jobs=1)
 
     sparse_merge = vectorizer.fit_transform(merge)
-    print(f'[{time() - start_time}] Merge vectorized')
+    ###print(f'[{time() - start_time}] Merge vectorized')
     print(sparse_merge.shape)
 
     tfidf_transformer = TfidfTransformer()
 
     X = tfidf_transformer.fit_transform(sparse_merge)
-    print(f'[{time() - start_time}] TF/IDF completed')
+    ###print(f'[{time() - start_time}] TF/IDF completed')
 
     X_train = X[:nrow_train]
     print(X_train.shape)
@@ -662,15 +663,15 @@ if __name__ == '__main__':
     gc.collect()
 
     X_train, X_test = intersect_drop_columns(X_train, X_test, min_df=1)
-    print(f'[{time() - start_time}] Drop only in train or test cols: {X_train.shape[1]}')
+    ###print(f'[{time() - start_time}] Drop only in train or test cols: {X_train.shape[1]}')
     gc.collect()
 
     ridge = Ridge(solver='auto', fit_intercept=True, alpha=0.4, max_iter=200, normalize=False, tol=0.01)
     ridge.fit(X_train, y_train)
-    print(f'[{time() - start_time}] Train Ridge completed. Iterations: {ridge.n_iter_}')
+    ###print(f'[{time() - start_time}] Train Ridge completed. Iterations: {ridge.n_iter_}')
 
     predsR = ridge.predict(X_test)
-    print(f'[{time() - start_time}] Predict Ridge completed.')
+    ###print(f'[{time() - start_time}] Predict Ridge completed.')
 
     submission.loc[:, 'price'] = np.expm1(predsR)
     submission.loc[submission['price'] < 0.0, 'price'] = 0.0
