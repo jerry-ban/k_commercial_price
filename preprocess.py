@@ -25,16 +25,15 @@ CC_BRAND_NAME_PATERN  = r"^[a-z0-9*/+\-'?!.,|&%]+\s[a-z0-9*/+\-'?!.,|&%]+"
 CC_BRAND_DESC_PATTERN  = r"^[a-z0-9*/+\-'?!.,|&%]+\s[a-z0-9*/+\-'?!.,|&%]+"
 
 def read_and_clean_data(data_count = None):
+    start_time = time.time()
+    data_count = None
+    print("reading data...")
     if data_count is None:
-        train = pd.read_table(file_train, engine='c', dtype=
-                                {'item_condition_id': 'category',
-                                 'shipping': 'category'}
+        train = pd.read_table(file_train, engine='c', dtype={'item_condition_id': 'category','shipping': 'category'}
                               , index_col = None
                           )
     else:
-        train = pd.read_table(file_train, engine='c', nrows=data_count , dtype=
-                                {'item_condition_id': 'category',
-                                 'shipping': 'category'}
+        train = pd.read_table(file_train, engine='c', nrows=data_count , dtype={'item_condition_id': 'category', 'shipping': 'category'}
                               ,index_col = None
                         )
     #only keep valid price
@@ -50,10 +49,12 @@ def read_and_clean_data(data_count = None):
     y_train = np.log1p(train.price)
 
     if data_count is None:
-        test= pd.read_table(file_test, engine='c', encoding = "windows-1252", dtype={'item_condition_id': 'category', 'shipping': 'category'} )
+        test= pd.read_table(file_test, engine='c', dtype={'item_condition_id': 'category', 'shipping': 'category'} )
 
     else:
         test= pd.read_table(file_test, engine='c', nrows=data_count, dtype= {'item_condition_id': 'category', 'shipping': 'category'} )
+
+    submission= test[['test_id']]
 
     merged = pd.concat([train, test], ignore_index=True)
 
@@ -61,6 +62,7 @@ def read_and_clean_data(data_count = None):
     del test
     gc.collect()
 
+    print("... {:<10.1f} process data...".format(time.time() - start_time))
     # create has_category feature, and split whole combined category into 3 specific categories
     # fill missing info for category_name
     merged['has_category'] = (merged['category_name'].notnull()).astype('category')
@@ -88,9 +90,11 @@ def read_and_clean_data(data_count = None):
     merged['item_description'].str.encode("utf-8")
 
     #normalize expensive stuff, and units
+    print("... {:<10.1f} re data...".format(time.time() - start_time))
     merged = routine.process_with_regex(merged)
 
     # fill in missing brand from name and description
+    print("... {:<10.1f} filling missing brand data...".format(time.time() - start_time))
     merged = brands_filling(merged)
 
     # concancenat name and brand
@@ -104,8 +108,8 @@ def read_and_clean_data(data_count = None):
     ###print(f'[{time() - start_time}] Item description concatenated.')
 
     merged.drop(['price', 'test_id', 'train_id'], axis=1, inplace=True)
-
-    return merged, y_train, nrow_train
+    print("... {:<10.1f} data processed".format(time.time() - start_time))
+    return submission, merged, y_train, nrow_train
 
 
 def brands_filling(df):

@@ -12,10 +12,17 @@ from matplotlib import cm
 
 from sklearn.preprocessing import MinMaxScaler
 
+
+
+from training import *
+
 file_train = "train.tsv"
 # rows: 669959,70, 3665
 rows= 10**4
-data = preprocess.read_and_clean_data(rows)
-data.shape
+df_testid, merge, y_train, nrow_train = preprocess.read_and_clean_data(rows)
+print("data ({})processed, to train data next".format(merge.shape))
+model_train(merge, y_train, nrow_train, df_testid)
+
+
 
 
