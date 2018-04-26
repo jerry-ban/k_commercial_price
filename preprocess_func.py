@@ -53,12 +53,12 @@ def process_with_regex(dataset ):
     # dataset.loc[dataset['name'].str.contains(karats_regex), ["name"]]
     dataset['name'] = dataset['name'].str.replace(karats_regex, karats_repl)
     dataset['item_description'] = dataset['item_description'].str.replace(karats_regex, karats_repl)
-    print("{} Karats normalized.".format(time.time()-start_time))
+    print("{:<15.1f} Karats normalized.".format(time.time()-start_time))
 
     dataset['name'] = dataset['name'].str.replace(unit_regex, unit_repl)
     dataset['item_description'] = dataset['item_description'].str.replace(unit_regex, unit_repl)
     #print(f'[{time() - start_time}] Units glued.')
-    print('{} Units glued.'.format(time.time() - start_time))
+    print('{:<15.1f} Units glued.'.format(time.time() - start_time))
 
     return dataset
 

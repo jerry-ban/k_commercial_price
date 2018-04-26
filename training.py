@@ -15,7 +15,7 @@ from preprocess_func import split_cat_to_new_ones
 import time
 
 def model_train(merge, y_train, nrow_train, submission):
-    print("training model...")
+    print("to train model...")
     start_time = time.time()
     meta_params = {'name_ngram': (1, 2),
                        'name_max_f': 75000,
@@ -155,7 +155,7 @@ def model_train(merge, y_train, nrow_train, submission):
     submission.loc[:, 'price'] = np.expm1(predsR)
     submission.loc[submission['price'] < 0.0, 'price'] = 0.0
     submission.to_csv("submission_ridge.csv", index=False)
-    print("... {:<10.1f} work done".format(time.time() - start_time))
+    print("... {:<10.1f} prediction work done".format(time.time() - start_time))
 
 def intersect_drop_columns(train: csr_matrix, valid: csr_matrix, min_df=0):
     t = train.tocsc()
