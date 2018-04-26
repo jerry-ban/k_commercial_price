@@ -36,7 +36,7 @@ def model_train(merge, y_train, nrow_train, submission):
 
     vectorizer = ppline.FeatureUnion([
             ('name', ppline.Pipeline([
-                ('select', ItemSelector('name')),
+                ('select', myclass.ItemSelector('name')),
                 ('transform', HashingVectorizer(
                     ngram_range=(1, 2),
                     n_features=2 ** 27,
@@ -120,10 +120,9 @@ def model_train(merge, y_train, nrow_train, submission):
     sparse_merge = vectorizer.fit_transform(merge)
         ###print(f'[{time() - start_time}] Merge vectorized')
     print(sparse_merge.shape)
+    print("... {:<10.1f} transform tfidf...".format(time.time() - start_time))
 
     tfidf_transformer = TfidfTransformer()
-
-    print("... {:<10.1f} transform tfidf...".format(time.time() - start_time))
     X = tfidf_transformer.fit_transform(sparse_merge)
     ###print(f'[{time() - start_time}] TF/IDF completed')
 
