@@ -14,6 +14,10 @@ class ItemSelector(skbase.BaseEstimator, skbase.TransformerMixin):
         return self
 
     def transform(self, dataframe):
+        """
+        :param dataframe:
+        :return: a transformed dataseries, like [ [a], [b], [b] ]
+        """
         ###print(f'[{time()-self.start_time}] select {self.field}')
         dt = dataframe[self.field].dtype
         if spi_types.is_categorical_dtype(dt):

@@ -26,7 +26,7 @@ CC_BRAND_DESC_PATTERN  = r"^[a-z0-9*/+\-'?!.,|&%]+\s[a-z0-9*/+\-'?!.,|&%]+"
 
 def read_and_clean_data(data_count = None):
     start_time = time.time()
-    data_count = None
+    data_count = 100000
     print("reading data...")
     if data_count is None:
         train = pd.read_table(file_train, engine='c', dtype={'item_condition_id': 'category','shipping': 'category'}
