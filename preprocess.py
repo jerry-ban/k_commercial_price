@@ -6,7 +6,7 @@ import gc
 import re
 import os
 import logging
-import charset
+#import charset
 import sys
 import time
 
@@ -15,13 +15,13 @@ from cls_symspell import SymSpell
 file_train = "train.tsv"
 file_test = "test.tsv"
 
-#CC_BRAND_WORD = r"[a-z0-9*/+\-'’?!.,|&%®™фийь]+"
+#CC_BRAND_WORD = r"[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+"
 CC_BRAND_WORD  = r"[a-z0-9*/+\-'?!.,|&%]+"
-#CC_TWO_WORDS_PATTERN = r"(?=(\s[a-z0-9*/+\-'’?!.,|&%®™фийь]+\s[a-z0-9*/+\-'’?!.,|&%®™фийь]+))"
+#CC_TWO_WORDS_PATTERN = r"(?=(\s[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+\s[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+))"
 CC_TWO_WORDS_PATTERN  = r"(?=(\s[a-z0-9*/+\-'?!.,|&%]+\s[a-z0-9*/+\-'?!.,|&%]+))"
-#CC_BRAND_NAME_PATERN = r"^[a-z0-9*/+\-'’?!.,|&%®™фийь]+\s[a-z0-9*/+\-'’?!.,|&%®™фийь]+"
+#CC_BRAND_NAME_PATERN = r"^[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+\s[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+"
 CC_BRAND_NAME_PATERN  = r"^[a-z0-9*/+\-'?!.,|&%]+\s[a-z0-9*/+\-'?!.,|&%]+"
-#CC_BRAND_DESC_PATTERN = r"^[a-z0-9*/+\-'’?!.,|&%®™фийь]+\s[a-z0-9*/+\-'’?!.,|&%®™фийь]+"
+#CC_BRAND_DESC_PATTERN = r"^[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+\s[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+"
 CC_BRAND_DESC_PATTERN  = r"^[a-z0-9*/+\-'?!.,|&%]+\s[a-z0-9*/+\-'?!.,|&%]+"
 
 def read_and_clean_data(data_count = None):
@@ -115,7 +115,7 @@ def read_and_clean_data(data_count = None):
 def brands_filling(df):
     vc = df['brand_name'].value_counts()
     brands = vc[vc > 0].index
-    brand_word = CC_BRAND_WORD  # r"[a-z0-9*/+\-'’?!.,|&%®™фийь]+"
+    brand_word = CC_BRAND_WORD  # r"[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+"
 
     many_w_brands = brands[brands.str.contains(' ')]
     one_w_brands = brands[~brands.str.contains(' ')]
@@ -126,16 +126,16 @@ def brands_filling(df):
     ss1 = SymSpell(max_edit_distance=0)
     ss1.create_dictionary_from_arr(one_w_brands, token_pattern=r'.+')
 
-    two_words_re = re.compile(CC_TWO_WORDS_PATTERN) #r"(?=(\s[a-z0-9*/+\-'’?!.,|&%®™фийь]+\s[a-z0-9*/+\-'’?!.,|&%®™фийь]+))"
+    two_words_re = re.compile(CC_TWO_WORDS_PATTERN) #r"(?=(\s[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+\s[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+))"
 
     print("Before empty brand_name: {}".format(len(df[df['brand_name'] == ''].index)))  # sum(df['brand_name'] == '')
 
-    # r"^[a-z0-9*/+\-'’?!.,|&%®™фийь]+\s[a-z0-9*/+\-'’?!.,|&%®™фийь]+"
+    # r"^[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+\s[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+"
     n_name = df[df['brand_name'] == '']['name'].str.findall(pat=CC_BRAND_NAME_PATERN)
 
     df.loc[df['brand_name'] == '', 'brand_name'] = [routine.find_in_list_ss2(row, ss2) for row in n_name]
 
-    #r"^[a-z0-9*/+\-'’?!.,|&%®™фийь]+\s[a-z0-9*/+\-'’?!.,|&%®™фийь]+"
+    #r"^[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+\s[a-z0-9*/+\-'пїЅ?!.,|&%пїЅпїЅпїЅпїЅпїЅпїЅ]+"
     n_desc = df[df['brand_name'] == '']['item_description'].str.findall(pat=CC_BRAND_DESC_PATTERN)
 
     df.loc[df['brand_name'] == '', 'brand_name'] = [routine.find_in_list_ss2(row,ss2) for row in n_desc]
