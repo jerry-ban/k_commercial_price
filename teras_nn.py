@@ -15,7 +15,7 @@ import tensorflow as tf
 from subprocess import check_output
 ### print(check_output(["ls", "../input"]).decode("utf8"))
 
-plt.interactive(True)  # when debug mode
+#plt.interactive(True)  # when debug mode
 #plt.show(block=True)
 
 def rmsle(y, y_pred):
@@ -29,8 +29,8 @@ file_train = "train.tsv"
 file_test = "test.tsv"
 
 print("Loading data...")
-train = pd.read_table(file_train, nrows=10000)#"../input/train.tsv")
-test = pd.read_table(file_test, nrows=10000)#"../input/test.tsv")
+train = pd.read_table(file_train, nrows=100000)#"../input/train.tsv")
+test = pd.read_table(file_test, nrows=100000)#"../input/test.tsv")
 print(train.shape)
 print(test.shape)
 
@@ -148,8 +148,32 @@ from keras.models import Model
 from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping
 from keras import backend as K
 
+#this following function can be replaced by customized function: get_my_callbacks
+model_filepath='./checkpoint.hdf5'
+# if every epoch to be saved, filepath='/Users/Alex/checkpoint-{epoch:02d}-{val_loss:.2f}.hdf5'
 def get_callbacks(filepath, patience=2):
     es = EarlyStopping('val_loss', patience=patience, mode="min")
+    msave = ModelCheckpoint(filepath=model_filepath, save_best_only=True)
+    return [es, msave]
+
+class MyEarlyStopByLossVal(Callback):
+    def __init__(self, monitor="val_loss", value=0.001, verbose = 1):
+        super(Callback, self).__init__()
+        self.monitor = monitor
+        self.value=value
+        self.verbose=verbose
+
+    def on_epoch_end(self, epoch, logs={}):
+        current = logs.get(self.monitor)
+        if current is None:
+            Exception("need epoch data!")
+        if current<self.value:
+            print("loss value meets the threshold, training terminated... ")
+            self.model.stop_training = True
+
+
+def get_my_callbacks(filepath=model_filepath, patience=2):
+    es = MyEarlyStopByLossVal('val_loss', value=0.001, verbose = 1)
     msave = ModelCheckpoint(filepath, save_best_only=True)
     return [es, msave]
 
@@ -211,14 +235,43 @@ model.summary()
 
 #FITTING THE MODEL
 BATCH_SIZE = 20000
-epochs = 5
+epochs = 50
 
 model = get_model()
-model.fit(X_train, dtrain.target, epochs=epochs, batch_size=BATCH_SIZE
-          , validation_data=(X_valid, dvalid.target)
+cbks = get_my_callbacks()
+history = model.fit(X_train, dtrain.target, epochs=epochs, batch_size=BATCH_SIZE
+          , validation_data=(X_valid, dvalid.target), callbacks =cbks
           , verbose=1)
 
+print(history.history.keys())
+# summarize history for error (if accuracy is there, "acc", can show acc instead
+plt.figure()
+plt.plot(history.history['mean_absolute_error'])
+plt.plot(history.history['val_mean_absolute_error'])
+plt.title('model error')
+plt.ylabel('mae')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+# summarize history for loss
+plt.figure()
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
 
+# summarize history for loss
+plt.figure()
+plt.plot(history.history['rmsle_cust'])
+plt.plot(history.history['val_rmsle_cust'])
+plt.title('model rmsle')
+plt.ylabel('rmsle_cust')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
 
 #EVLUEATE THE MODEL ON DEV TEST: What is it doing?
 val_preds = model.predict(X_valid)
@@ -243,3 +296,4 @@ submission["price"] = preds
 
 submission.to_csv("./NNsubmission_keras_nn.csv", index=False)
 submission.price.hist()
+

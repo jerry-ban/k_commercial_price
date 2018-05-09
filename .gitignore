@@ -1,2 +1,4 @@
 *.tsv
 test_stg2.tsv.zip
+*.csv
+*.hdf5
