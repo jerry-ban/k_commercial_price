@@ -24,13 +24,25 @@ def rmsle(y, y_pred):
     return (sum(to_sum) * (1.0/len(y))) ** 0.5
 #Source: https://www.kaggle.com/marknagelberg/rmsle-function
 
+train_size_ratio = 0.6
+BATCH_SIZE = 20000
+epochs = 10
+nrows_default = 10000 #None
+
 #LOAD DATA
 file_train = "train.tsv"
 file_test = "test.tsv"
 
 print("Loading data...")
-train = pd.read_table(file_train, nrows=100000)#"../input/train.tsv")
-test = pd.read_table(file_test, nrows=100000)#"../input/test.tsv")
+#"""
+train = pd.read_table(file_train, nrows=nrows_default)#"../input/train.tsv")
+test = pd.read_table(file_test, nrows=nrows_default)#"../input/test.tsv")
+#"""
+"""
+train = pd.read_table(file_train)#"../input/train.tsv")
+test = pd.read_table(file_test)#"../input/test.tsv")
+"""
+
 print(train.shape)
 print(test.shape)
 
@@ -117,7 +129,7 @@ train["target"] = target_scaler.fit_transform(train.target.reshape(-1,1))
 pd.DataFrame(train.target).hist()
 
 #EXTRACT DEVELOPTMENT TEST
-dtrain, dvalid = train_test_split(train, random_state=123, train_size=0.99)
+dtrain, dvalid = train_test_split(train, random_state=123, train_size=train_size_ratio)
 print(dtrain.shape)
 print(dvalid.shape)
 
@@ -234,9 +246,6 @@ model.summary()
 
 
 #FITTING THE MODEL
-BATCH_SIZE = 20000
-epochs = 50
-
 model = get_model()
 cbks = get_my_callbacks()
 history = model.fit(X_train, dtrain.target, epochs=epochs, batch_size=BATCH_SIZE
@@ -252,7 +261,9 @@ plt.title('model error')
 plt.ylabel('mae')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
+plt.savefig("./input/mae.pdf")
 plt.show()
+
 # summarize history for loss
 plt.figure()
 plt.plot(history.history['loss'])
@@ -261,7 +272,9 @@ plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
+plt.savefig("./input/loss.pdf")
 plt.show()
+
 
 # summarize history for loss
 plt.figure()
@@ -271,6 +284,7 @@ plt.title('model rmsle')
 plt.ylabel('rmsle_cust')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
+plt.savefig("./input/rmsle.pdf")
 plt.show()
 
 #EVLUEATE THE MODEL ON DEV TEST: What is it doing?
