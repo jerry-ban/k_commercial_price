@@ -25,9 +25,10 @@ def rmsle(y, y_pred):
 #Source: https://www.kaggle.com/marknagelberg/rmsle-function
 
 train_size_ratio = 0.6
-BATCH_SIZE = 20000
-epochs = 10
-nrows_default = 10000 #None
+BATCH_SIZE = 200000
+nrows_default =  None # 100000 #None
+epochs = 100
+loss_threshold= 0.0001  #0.01
 
 #LOAD DATA
 file_train = "train.tsv"
@@ -125,7 +126,7 @@ MAX_CONDITION = np.max([train.item_condition_id.max(), test.item_condition_id.ma
 #SCALE target variable
 train["target"] = np.log(train.price+1)
 target_scaler = MinMaxScaler(feature_range=(-1, 1))
-train["target"] = target_scaler.fit_transform(train.target.reshape(-1,1))
+train["target"] = target_scaler.fit_transform(train.target.values.reshape(-1,1))
 pd.DataFrame(train.target).hist()
 
 #EXTRACT DEVELOPTMENT TEST
@@ -169,7 +170,7 @@ def get_callbacks(filepath, patience=2):
     return [es, msave]
 
 class MyEarlyStopByLossVal(Callback):
-    def __init__(self, monitor="val_loss", value=0.001, verbose = 1):
+    def __init__(self, monitor="val_loss", value=loss_threshold, verbose = 1):
         super(Callback, self).__init__()
         self.monitor = monitor
         self.value=value
@@ -262,7 +263,7 @@ plt.ylabel('mae')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.savefig("./input/mae.pdf")
-plt.show()
+#plt.show()
 
 # summarize history for loss
 plt.figure()
@@ -273,7 +274,7 @@ plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.savefig("./input/loss.pdf")
-plt.show()
+#plt.show()
 
 
 # summarize history for loss
@@ -285,7 +286,7 @@ plt.ylabel('rmsle_cust')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.savefig("./input/rmsle.pdf")
-plt.show()
+#plt.show()
 
 #EVLUEATE THE MODEL ON DEV TEST: What is it doing?
 val_preds = model.predict(X_valid)
@@ -298,16 +299,19 @@ y_pred = val_preds[:,0]
 v_rmsle = rmsle(y_true, y_pred)
 print(" RMSLE error on dev test: "+str(v_rmsle))
 
+verified_y = dvalid[["price"]].copy()
+verified_y["pred_price"] = y_pred
+verified_y.to_csv("./_result_compare_nn.csv", index=False)
 
 #CREATE PREDICTIONS
 preds = model.predict(X_test, batch_size=BATCH_SIZE)
 preds = target_scaler.inverse_transform(preds)
 preds = np.exp(preds)-1
 
-submission = test[["test_id"]]
+submission = test[["test_id"]].copy()
 submission["price"] = preds
 
-
-submission.to_csv("./NNsubmission_keras_nn.csv", index=False)
+submission.to_csv("./_submission_keras_nn.csv", index=False)
 submission.price.hist()
 
+plt.show()
